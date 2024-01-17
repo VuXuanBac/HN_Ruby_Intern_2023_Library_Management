@@ -1,22 +1,13 @@
 class Admin::AuthorsController < Admin::BaseController
+  include Admin::AuthorsConcern
+
   before_action :get_author, only: %i(show edit update destroy)
-  before_action :transform_params, only: :index
 
-  def index
-    authors = Author.with_attached_avatar
-
-    q = params[:q]
-    authors = authors.bquery(q) if q
-
-    s = params[:sort]
-    authors = s ? authors.sort_on(s, params[:desc]) : authors.newest
-
-    @pagy, @authors = pagy authors
-  end
+  def index; end
 
   def show
+    load_books
     @tab_id = :author_books
-    @pagy, @books = pagy @author.books.newest.with_attached_image
     render "admin/shared/tab_books"
   end
 
@@ -48,20 +39,5 @@ class Admin::AuthorsController < Admin::BaseController
 
     flash[:error] = t "admin.notif.item_not_found", name: t("authors._name")
     redirect_to admin_authors_path
-  end
-
-  def author_params
-    params.require(:author).permit :name, :about, :phone,
-                                   :email, :avatar
-  end
-
-  def transform_params
-    permit_sorts = {
-      name: "authors.name",
-      email: "authors.email",
-      phone: "authors.phone"
-    }
-    s = params[:sort]&.downcase&.to_sym
-    params[:sort] = permit_sorts[s]
   end
 end

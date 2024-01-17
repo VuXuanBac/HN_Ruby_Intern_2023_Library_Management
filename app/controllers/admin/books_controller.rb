@@ -62,7 +62,10 @@ class Admin::BooksController < Admin::BaseController
 
   def get_book
     @book = Book.find_by id: params[:id]
-    return if @book
+
+    return if @book&.is_active
+
+    return if action_name == "show" && @book
 
     flash[:error] = t "admin.notif.item_not_found", name: t("books._name")
     redirect_to admin_books_path

@@ -63,3 +63,99 @@ RSpec.shared_examples "json errors" do |name, action, status: :unprocessable_ent
     expect(json_body["errors"]).to match assigns(name).errors.full_messages
   end
 end
+
+RSpec.shared_examples "API_CRUD" do |name|
+  let(name){create(name)}
+  let("#{name}_params"){attributes_for(name)}
+
+  shared_examples "populate #{name}" do
+    it "assigns the requested #{name} to @#{name}" do
+      expect(assigns(name)).to eq send(name)
+    end
+  end
+
+  describe "GET #index" do
+    before do
+      create_list(name, 3)
+      get :index
+    end
+
+    include_examples "json collection", name, 3
+  end
+
+  describe "GET #show" do
+    context "when #{name} is not found" do
+      before do
+        get :show, params: {id: -1}
+      end
+      include_examples "json message", :record_not_found, status: :not_found
+    end
+
+    context "when #{name} is found" do
+      before do
+        get :show, params: {id: send(name).id}
+      end
+
+      include_examples "json object", name
+    end
+  end
+
+  describe "GET #books" do
+    let("#{name}_with_books"){create(name, books: create_list(:book, 3))}
+    let(:serialize_attributes){%w(id title description isbn amount available borrowed publish_date last_update cover)}
+
+    before do
+      get :books, params: {id: send("#{name}_with_books").id}
+    end
+
+    include_examples "json collection", :book, 3
+  end
+
+  describe "POST #create" do
+    context "when params are valid" do
+      before do
+        post :create, params: {name => send("#{name}_params")}
+      end
+
+      it "saves the #{name} to database" do
+        expect(assigns(name)).to be_persisted
+      end
+
+      include_examples "json object", name
+    end
+
+    context "when params are not valid" do
+      before do |ex|
+        post :create, params: {
+          name => send("#{name}_params").merge({name: nil})
+        }
+      end
+
+      include_examples "json errors", name, :create
+    end
+  end
+
+  describe "PATCH #update" do
+    before do
+      patch :update, params: {id: send(name).id, name => send("#{name}_params")}
+    end
+
+    context "when params are valid" do
+      it "changes the #{name} attributes" do
+        expect(assigns(name).reload.attributes).to include(send("#{name}_params").transform_keys(&:to_s))
+      end
+
+      include_examples "json object", name
+    end
+  end
+
+  describe "DELETE #destroy" do
+    before do
+      delete :destroy, params: {id: send(name).id, format: :turbo_stream}
+    end
+
+    context "when destroy successfully" do
+      include_examples "json object", name
+    end
+  end
+end

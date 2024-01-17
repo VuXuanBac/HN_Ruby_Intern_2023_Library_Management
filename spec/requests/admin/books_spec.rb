@@ -31,6 +31,7 @@ RSpec.describe Admin::BooksController, :admin, type: :controller do
       before do
         get :show, params: {id: -1}
       end
+
       include_examples "invalid item", :book
     end
 
@@ -70,10 +71,17 @@ RSpec.describe Admin::BooksController, :admin, type: :controller do
       get :edit, params: {id: book.id}
     end
 
-    include_examples "populate book"
+    context "when book is available" do
+      include_examples "populate book"
 
-    it "renders the :edit template" do
-      should render_template :edit
+      it "renders the :edit template" do
+        should render_template :edit
+      end
+    end
+
+    context "when book is deleted" do
+      let(:book){create(:book, is_active: false)}
+      include_examples "invalid item", :book
     end
   end
 
@@ -264,14 +272,6 @@ RSpec.describe Admin::BooksController, :admin, type: :controller do
     end
 
     context "when the book has not been borrowed yet" do
-      context "when update :is_active fail" do
-        before do
-          book.update is_active: false
-          delete :destroy, params: {id: book.id, format: :turbo_stream}
-        end
-        include_examples "set flash", :error, :delete_fail, name: I18n.t("books._name")
-      end
-
       context "when update :is_active successfully" do
         before do
           delete :destroy, params: {id: book.id, format: :turbo_stream}

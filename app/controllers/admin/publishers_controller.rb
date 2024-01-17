@@ -1,22 +1,13 @@
 class Admin::PublishersController < Admin::BaseController
+  include Admin::PublishersConcern
+
   before_action :get_publisher, only: %i(show edit update destroy)
-  before_action :transform_params, only: :index
 
-  def index
-    publishers = Publisher.all
-
-    q = params[:q]
-    publishers = publishers.bquery(q) if q
-
-    s = params[:sort]
-    publishers = s ? publishers.sort_on(s, params[:desc]) : publishers.newest
-
-    @pagy, @publishers = pagy publishers
-  end
+  def index; end
 
   def show
+    load_books
     @tab_id = :publisher_books
-    @pagy, @books = pagy @publisher.books.newest.with_attached_image
     render "admin/shared/tab_books"
   end
 
@@ -41,24 +32,12 @@ class Admin::PublishersController < Admin::BaseController
   end
 
   private
+
   def get_publisher
     @publisher = Publisher.find_by id: params[:id]
     return if @publisher
 
     flash[:error] = t "admin.notif.item_not_found", name: t("publishers._name")
     redirect_to admin_publishers_path
-  end
-
-  def publisher_params
-    params.require(:publisher).permit :name, :address, :about, :email
-  end
-
-  def transform_params
-    permit_sorts = {
-      name: "publishers.name",
-      email: "publishers.email"
-    }
-    s = params[:sort]&.downcase&.to_sym
-    params[:sort] = permit_sorts[s]
   end
 end

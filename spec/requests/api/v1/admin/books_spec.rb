@@ -63,6 +63,11 @@ RSpec.describe API::V1::Admin::BooksController, :api_admin, type: :controller do
       }
     end
 
+    context "when book is deleted" do
+      let(:book){create(:book, is_active: false)}
+      include_examples "json message", :record_not_found, status: :not_found
+    end
+
     context "when params are valid" do
       it "changes the book attributes" do
         expect(assigns(:book).reload.attributes).to include(book_params.transform_keys(&:to_s))
@@ -150,9 +155,6 @@ RSpec.describe API::V1::Admin::BooksController, :api_admin, type: :controller do
 
   describe "DELETE #destroy" do
     before do |ex|
-      if ex.metadata[:destroy_first]
-        book.update is_active: false
-      end
       delete :destroy, params: {id: book.id}
     end
 
@@ -163,13 +165,7 @@ RSpec.describe API::V1::Admin::BooksController, :api_admin, type: :controller do
     end
 
     context "when the book has not been borrowed yet" do
-      context "when update :is_active fail", :destroy_first do
-        include_examples "json errors", :book, :delete
-      end
-
-      context "when update :is_active successfully" do
-        include_examples "json object", :book
-      end
+      include_examples "json object", :book
     end
   end
 end

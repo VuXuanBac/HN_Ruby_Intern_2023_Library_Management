@@ -90,6 +90,16 @@ Rails.application.routes.draw do
               patch :amend
             end
           end
+          resources :authors, :genres, :publishers do
+            member do
+              get :books
+            end
+          end
+          resources :users, only: %i(index show) do
+            member do
+              post :active, :inactive
+            end
+          end
         end
       end
     end

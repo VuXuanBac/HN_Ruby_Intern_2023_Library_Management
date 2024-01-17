@@ -8,3 +8,7 @@ en:
     update_fail: 'Errors on update %{name}'
     delete_fail: 'Errors on delete %{name}'
     delete_book_fail_borrowed: 'Delete book fail because there are some requests has not been returned'
+    require_lock_reason: 'You need to choose or enter a reason to lock this account'
+    active_user_success: 'Active account successfully'
+    inactive_user_success: 'Inactive account successfully'
+    update_user_status_error: 'Error on changing account status'

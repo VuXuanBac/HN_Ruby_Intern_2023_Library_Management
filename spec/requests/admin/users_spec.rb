@@ -9,27 +9,24 @@ RSpec.describe Admin::UsersController, :admin, type: :controller do
     end
   end
 
-  shared_examples "change status" do |to_active, more_params = {}|
-    let(:status) {to_active ? :active : :inactive}
+  shared_examples "change status" do |action, more_params = {}|
+    before do |ex|
+      extra = ex.metadata[:turbo] ? {format: :turbo_stream} : {}
+      post action, params: {id: user.id}.merge(more_params).merge(extra)
+    end
 
     context "when success" do
-      before do
-        @user = to_active ? create(:inactive_account) : create(:account)
-        post status, params: {id: @user.id}.merge(more_params)
+      let(:user) do
+        (action == :active) ? create(:inactive_account) : create(:account)
       end
 
       it "changes user status" do
-        expect(@user.reload.is_active).to eq to_active
+        expect(user.reload.is_active).to eq (action == :active)
       end
 
-      context "with turbo_stream format" do
-        before do
-          post status, params: {id: @user.id, format: :turbo_stream}.merge(more_params)
-        end
-
+      context "with turbo_stream format", :turbo do
         include_examples "set flash", :success,
-                         "#{to_active ? :active : :inactive}_user_success",
-                         now: true
+                         "#{action}_user_success", now: true
 
         it "renders :change_status partial" do
           should render_template :change_status
@@ -37,8 +34,7 @@ RSpec.describe Admin::UsersController, :admin, type: :controller do
       end
 
       context "with html format" do
-        include_examples "set flash", :success,
-                         "#{to_active ? :active : :inactive}_user_success"
+        include_examples "set flash", :success, "#{action}_user_success"
 
         it "redirects to users list page" do
           should redirect_to admin_users_path
@@ -46,14 +42,13 @@ RSpec.describe Admin::UsersController, :admin, type: :controller do
       end
     end
 
-    context "when fail" do
-      before do
-        @user = to_active ? create(:account) : create(:inactive_account)
-        post status, params: {id: @user.id, format: :turbo_stream}.merge(more_params)
+    context "when fail", :turbo do
+      let(:user) do
+        (action == :active) ? create(:account) : create(:inactive_account)
       end
 
       it "keeps user status" do
-        expect(@user.reload.is_active).to eq to_active
+        expect(user.reload.is_active).to eq (action == :active)
       end
 
       include_examples "set flash", :error, :update_user_status_error, now: true
@@ -113,22 +108,12 @@ RSpec.describe Admin::UsersController, :admin, type: :controller do
   end
 
   describe "POST #active" do
-    before do
-      post :active, params: {id: user.id}
-    end
-
-    include_examples "populate user"
-    include_examples "change status", true
+    include_examples "change status", :active
   end
 
   describe "POST #inactive" do
     context "with reason" do
-      before do
-        post :inactive, params: {id: user.id, reason: "A Reason"}
-      end
-
-      include_examples "populate user"
-      include_examples "change status", false, {reason: "A Reason"}
+      include_examples "change status", :inactive, {reason: "A Reason"}
     end
 
     context "without reason" do

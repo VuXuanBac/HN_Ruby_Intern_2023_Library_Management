@@ -44,5 +44,9 @@ class API::V1::Admin::BooksController < API::V1::Admin::BaseController
 
   def get_book
     @book = Book.find_by! id: params[:id]
+
+    return unless action_name != "show" && !@book&.is_active
+
+    raise ActiveRecord::RecordNotFound
   end
 end

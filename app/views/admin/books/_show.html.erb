@@ -20,8 +20,14 @@
               <span class="text-description"><%= description %></span>
             </div>
             <div class="w-25">
-              <%= render "admin/shared/form_button", item: @book,
-                          name: :book, row: true %>
+              <% if @book.is_active %>
+                <%= render "admin/shared/form_button", item: @book,
+                            name: :book, row: true %>
+              <% else %>
+                <div class="badge badge-danger ms-auto">
+                  <%= t "books.inactive" %>
+                </div>
+              <% end %>
             </div>
           </div>
           <div class="mt-4 py-2">

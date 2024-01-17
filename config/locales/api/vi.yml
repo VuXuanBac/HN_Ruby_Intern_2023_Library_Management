@@ -1,5 +1,14 @@
 vi:
-  bad_credentials: 'Yêu cầu xác thực để tiếp tục'
-  no_permission: 'Tài khoản không có quyền thực hiện thao tác này'
-  record_not_found: 'Không tìm thấy dữ liệu'
-  authenticate_fail: 'Xác thực thất bại'
+  api:
+    bad_credentials: 'Yêu cầu xác thực để tiếp tục'
+    no_permission: 'Tài khoản không có quyền thực hiện thao tác này'
+    record_not_found: 'Không tìm thấy dữ liệu'
+    authenticate_fail: 'Xác thực thất bại'
+    create_fail: 'Có lỗi khi tạo %{name}'
+    update_fail: 'Có lỗi khi cập nhật %{name}'
+    delete_fail: 'Có lỗi khi xóa %{name}'
+    delete_book_fail_borrowed: 'Xóa sách thất bại do có các yêu cầu mượn chưa trả'
+    require_lock_reason: 'Bạn cần xác định lý do khóa tài khoản'
+    active_user_success: 'Kích hoạt tài khoản thành công'
+    inactive_user_success: 'Khóa tài khoản thành công'
+    update_user_status_error: 'Có lỗi xảy ra khi cập nhật trạng thái cho tài khoản'
